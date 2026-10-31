@@ -33,7 +33,7 @@
         <td class="small">{channels(g.channels)}</td>
         <td>{g.mistagged}</td>
         <td>{g.firstSeen} → {g.lastSeen}</td>
-        <td>{#if issues[g.problem]}<a href={issues[g.problem]}>open</a>{:else}—{/if}</td>
+        <td>{#if issues[g.problem]}<a href={issues[g.problem]}>#{issues[g.problem]?.split('/').pop()}</a>{:else}—{/if}</td>
       </tr>
     {/each}
   </tbody>
