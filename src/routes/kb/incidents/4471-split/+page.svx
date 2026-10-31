@@ -1,0 +1,57 @@
+---
+layout: runbook
+title: '#4471 · three problems, not one'
+owner: support desk
+status: draft
+reviewed: 2026-10-31
+signature: tszymanski
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const repo = 'https://github.com/tszymanski/mega_challenge_what_it_shows/issues';
+  const issues = { parser: `${repo}/1`, hint: `${repo}/2`, 'one-day': `${repo}/3` };
+</script>
+
+[#4471](/kb/incidents/4471) says one issue, one fix queued. Read the reports and it is three. The
+merge rule ([decision 0001](/kb/decisions/0001-dedupe-by-subject)) matched on subject, and every
+report about a wrong date has a subject that sounds the same.
+
+<Callout kind="warn">
+The queued parser fix closes only the first row. The other two keep coming in after it ships.
+</Callout>
+
+## What is in #4471
+
+<ProblemTable ticket={4471} {issues} />
+
+The export repeats some reports across its pages; each id is counted once. *Mistagged* counts the
+reports intake tagged as something else: intake guesses from the reporter's browser, the cause
+depends on the tenant.
+
+## The three problems
+
+**`parser`: the shared parser reads dates month first.** Day-first tenants get day and month
+swapped: "Our 7 April reminder went out on 4 July." Every tenant on file, every channel. This is the
+fix already queued.
+
+**`hint`: booking-v3 prints `MM/DD/YYYY` under its date field.** People at day-first tenants type
+what the hint says, month first, and the form reads it the tenant's way. Same swap, different bug:
+only reports through the form, only tenants on booking-v3. Fixing the parser does not touch it; the
+hint has to follow the tenant's locale.
+
+**`one-day`: the date moves by exactly one day.** "Invite says Tuesday 12 May. Calendar says Monday
+11 May." "Client in Lisbon got Tuesday. Client in Toronto got Monday. Same meeting." No month or day
+is swapped, so neither fix above reaches it. It reads like a timezone conversion on the date. The
+desk already noted these (`desk-notes.json`), and the #4471 page footnotes them under `parser`.
+
+## For the desk
+
+- When a report gives both dates, check them: a swap and a one-day move are not the same bug.
+- Place a report by its tenant and channel, not by the intake tag.
+- Reopen #4471 as the `parser` ticket only; the other two have their own.
+
+<RenderStamp {signature} />
