@@ -33,6 +33,29 @@ function group(problem: Problem, rs: Report[]): ProblemGroup {
   };
 }
 
+// EU member states (2026) by ISO region. The platform knows a locale's region, not its politics.
+const EU = new Set(['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE']);
+export const inEU = (locale: string): boolean => EU.has(new Intl.Locale(locale).maximize().region ?? '');
+
+// What engineering's update on a ticket leaves open, problem by problem, checked against the
+// tenant directory. parser: fixed for EU locales only. hint: won't fix, booking-v3 said retired.
+// one-day: not in the update.
+export type Left = { problem: Problem; update: string; open: Report[]; tenants: string[] };
+
+export function leftAfterUpdate(groups: ProblemGroup[], tenantOf: (r: Report) => Tenant | undefined): Left[] {
+  const still: Record<Problem, [string, (r: Report) => boolean]> = {
+    parser: ['fixed for EU locales', (r) => !inEU(tenantOf(r)?.locale ?? '')],
+    hint: ["won't fix: booking-v3 retired", (r) => tenantOf(r)?.form === 'booking-v3'],
+    'one-day': ['not in the update', () => true],
+    unplaced: ['not in the update', () => true],
+  };
+  return groups.map((g) => {
+    const [update, open] = still[g.problem];
+    const rs = g.reports.filter(open);
+    return { problem: g.problem, update, open: rs, tenants: [...new Set(rs.map((r) => `${r.tenant} (${tenantOf(r)?.locale}, ${tenantOf(r)?.form})`))].sort() };
+  });
+}
+
 export function splitTicket(all: Report[], ticket: number, tenantOf: (r: Report) => Tenant | undefined): ProblemGroup[] {
   const merged = uniqueById(all).filter((r) => r.mergedInto === ticket);
   const byCause = groupByCause(merged, tenantOf).map((g) => group(g.cause, g.reports));

@@ -3,7 +3,7 @@ layout: runbook
 title: '#4471 · three problems, not one'
 owner: support desk
 status: draft
-reviewed: 2026-10-31
+reviewed: 2026-11-01
 signature: tszymanski
 ---
 
@@ -11,6 +11,7 @@ signature: tszymanski
   import ProblemTable from '#lib/kb/ProblemTable.svelte';
   import Callout from '#lib/kb/Callout.svelte';
   import RenderStamp from '#lib/kb/RenderStamp.svelte';
+  import UpdateCheck from '#lib/kb/UpdateCheck.svelte';
 
   const repo = 'https://github.com/tszymanski/mega_challenge_what_it_shows/issues';
   const issues = { parser: `${repo}/1`, hint: `${repo}/2`, 'one-day': `${repo}/3` };
@@ -21,7 +22,9 @@ merge rule ([decision 0001](/kb/decisions/0001-dedupe-by-subject)) matched on su
 report about a wrong date has a subject that sounds the same.
 
 <Callout kind="warn">
-The queued parser fix closes only the first row. The other two keep coming in after it ships.
+#4471 was closed on 5 Oct, but its problems were not fixed. The parser fix covers EU locales only,
+and <code>en-GB</code> is not one. The hint stays on booking-v3, which three tenants still run. The one-day
+move was never in the update. Details are under <em>After the 5 Oct engineering update</em>.
 </Callout>
 
 ## What is in #4471
@@ -37,7 +40,7 @@ depends on the tenant.
 
 **`parser`: the shared parser reads dates month first.** Day-first tenants get day and month
 swapped: "Our 7 April reminder went out on 4 July." Every tenant on file, every channel. This is the
-fix already queued.
+fix #4471 had queued; what shipped covers EU locales only.
 
 **`hint`: booking-v3 prints `MM/DD/YYYY` under its date field.** People at day-first tenants type
 what the hint says, month first, and the form reads it the tenant's way. Same swap, different bug:
@@ -50,10 +53,27 @@ is swapped, so neither fix above reaches it. It reads like a timezone conversion
 desk already noted these (`desk-notes.json`) and files them under `parser` by tenant, so they
 count in both rows.
 
+## After the 5 Oct engineering update
+
+Engineering closed #4471 on 5 Oct: `parser` fixed ("fix(dates): parse dd/mm for eu locales"),
+`hint` won't fix ("booking-v3 form retired"). Checked against the export and the tenant directory,
+closing it leaves all three problems open:
+
+<UpdateCheck ticket={4471} {issues} />
+
+- **`parser`:** the fix covers EU locales only. harbour.dental writes dates in `en-GB`, and the UK is
+  not in the EU. Its reports run up to 4 Oct, the day before the close. The parser has to read
+  every day-first locale, not a list of EU ones.
+- **`hint`:** the tenant directory still lists three tenants on booking-v3. Until they are moved
+  off it, the form is not retired for them, and its hint still says `MM/DD/YYYY`.
+- **`one-day`:** the update does not mention it. Closing #4471 drops it.
+
 ## For the desk
 
 - When a report gives both dates, check them: a swap and a one-day move are not the same bug.
 - Place a report by its tenant and channel, not by the intake tag.
-- Reopen #4471 as the `parser` ticket only; the other two have their own.
+- Reopen #4471 as the `parser` ticket only, until the parser reads every day-first locale; the
+  other two have their own.
+- Check whether a "retired" form is still listed for a tenant before closing a ticket on it.
 
 <RenderStamp {signature} />
