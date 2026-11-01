@@ -1,6 +1,6 @@
 <script lang="ts">
   import reports from '#lib/data/reports-4471.json';
-  import type { Report } from '#lib/kb/causes';
+  import { uniqueById, type Report } from '#lib/kb/causes';
   import { tenantOf } from '#lib/kb/locales';
   import { splitTicket, type Problem } from '#lib/kb/problems';
 
@@ -8,12 +8,16 @@
   let { ticket, issues = {} }: { ticket: number; issues?: Partial<Record<Problem, string>> } = $props();
 
   const groups = $derived(splitTicket(reports as Report[], ticket, tenantOf));
-  const total = $derived(groups.reduce((n, g) => n + g.reports.length, 0));
+  const total = $derived(uniqueById(reports as Report[]).filter((r) => r.mergedInto === ticket).length);
   const channels = (c: Record<string, number>) =>
     Object.entries(c)
       .sort((a, b) => b[1] - a[1])
       .map(([ch, n]) => `${ch} ×${n}`)
       .join(' · ');
+  const filed = (f: Record<string, number>) =>
+    Object.entries(f)
+      .map(([cause, n]) => `${n} under ${cause}`)
+      .join(', ');
 </script>
 
 <p class="sum">
@@ -38,6 +42,12 @@
     {/each}
   </tbody>
 </table>
+
+{#each groups as g (g.problem)}
+  {#if g.filedUnder}
+    <p class="small">The {g.reports.length} <code>{g.problem}</code> reports are also counted where the desk files them: {filed(g.filedUnder)}.</p>
+  {/if}
+{/each}
 
 <style>
   .sum { font-size: 1.1rem; }

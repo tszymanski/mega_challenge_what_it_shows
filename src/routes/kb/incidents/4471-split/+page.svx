@@ -28,7 +28,8 @@ The queued parser fix closes only the first row. The other two keep coming in af
 
 <ProblemTable ticket={4471} {issues} />
 
-The export repeats some reports across its pages; each id is counted once. *Mistagged* counts the
+Counted the desk's way, from the export as it is: each id once (the export repeats some reports
+across its pages), each report under the cause it is filed by tenant. *Mistagged* counts the
 reports intake tagged as something else: intake guesses from the reporter's browser, the cause
 depends on the tenant.
 
@@ -46,7 +47,8 @@ hint has to follow the tenant's locale.
 **`one-day`: the date moves by exactly one day.** "Invite says Tuesday 12 May. Calendar says Monday
 11 May." "Client in Lisbon got Tuesday. Client in Toronto got Monday. Same meeting." No month or day
 is swapped, so neither fix above reaches it. It reads like a timezone conversion on the date. The
-desk already noted these (`desk-notes.json`), and the #4471 page footnotes them under `parser`.
+desk already noted these (`desk-notes.json`) and files them under `parser` by tenant, so they
+count in both rows.
 
 ## For the desk
 
